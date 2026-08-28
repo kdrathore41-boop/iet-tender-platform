@@ -4,7 +4,9 @@
   "description": "IET India E-Tender Platform Backend",
   "main": "api.js",
   "scripts": {
-    "start": "node api.js"
+    "start": "node api.js",
+    "test:collector": "node collector.js",
+    "test:cppp": "node test-cppp-adapter.js"
   },
   "engines": {
     "node": ">=18"
