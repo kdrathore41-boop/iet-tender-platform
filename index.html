@@ -1,14 +1,432 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IET Tender Platform</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IET - India Tender Platform</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  background:#f4f7fb;
+  color:#17233c;
+}
+header{
+  background:#09244f;
+  color:white;
+  padding:18px 6%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.logo{
+  font-size:28px;
+  font-weight:800;
+}
+.logo span{color:#f5a623}
+nav a{
+  color:white;
+  text-decoration:none;
+  margin-left:22px;
+  font-size:14px;
+}
+.hero{
+  background:linear-gradient(135deg,#09244f,#124b91);
+  color:white;
+  padding:65px 6%;
+  text-align:center;
+}
+.hero h1{
+  font-size:42px;
+  margin-bottom:12px;
+}
+.hero p{
+  font-size:18px;
+  opacity:.9;
+  margin-bottom:28px;
+}
+.search{
+  max-width:850px;
+  margin:auto;
+  display:flex;
+  background:white;
+  padding:7px;
+  border-radius:12px;
+}
+.search input{
+  flex:1;
+  border:0;
+  outline:0;
+  padding:15px;
+  font-size:16px;
+}
+.btn{
+  background:#0b63ce;
+  color:white;
+  border:0;
+  padding:14px 22px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+}
+.container{
+  width:88%;
+  max-width:1200px;
+  margin:35px auto;
+}
+.section-title{
+  font-size:25px;
+  margin-bottom:20px;
+}
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+}
+.stat{
+  background:white;
+  padding:22px;
+  border-radius:12px;
+  box-shadow:0 3px 12px #00000012;
+}
+.stat b{
+  display:block;
+  font-size:25px;
+  margin-bottom:6px;
+}
+.stat span{color:#65738b;font-size:14px}
+.filters{
+  background:white;
+  padding:22px;
+  border-radius:12px;
+  margin-top:30px;
+}
+.filter-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+select{
+  width:100%;
+  padding:12px;
+  border:1px solid #d9e0ea;
+  border-radius:7px;
+  background:white;
+}
+.tenders{
+  margin-top:35px;
+}
+.card{
+  background:white;
+  padding:22px;
+  border-radius:12px;
+  margin-bottom:15px;
+  box-shadow:0 3px 12px #00000010;
+}
+.badge{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:20px;
+  background:#e8f7ee;
+  color:#138044;
+  font-size:12px;
+  font-weight:bold;
+}
+.card h3{
+  margin:12px 0 7px;
+  font-size:20px;
+}
+.org{color:#65738b;margin-bottom:18px}
+.details{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:15px;
+  margin-bottom:18px;
+}
+.detail small{
+  display:block;
+  color:#7a8799;
+  margin-bottom:4px;
+}
+.actions{
+  display:flex;
+  gap:10px;
+}
+.outline{
+  background:white;
+  color:#0b63ce;
+  border:1px solid #0b63ce;
+}
+.features{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:18px;
+  margin-top:40px;
+}
+.feature{
+  background:white;
+  padding:25px;
+  border-radius:12px;
+}
+.feature h3{margin-bottom:8px}
+.feature p{color:#65738b;font-size:14px;line-height:1.5}
+footer{
+  margin-top:50px;
+  background:#071a38;
+  color:white;
+  padding:30px 6%;
+  text-align:center;
+}
+@media(max-width:800px){
+  nav{display:none}
+  .hero h1{font-size:30px}
+  .stats,.filter-grid,.features{
+    grid-template-columns:repeat(2,1fr);
+  }
+  .details{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){
+  .stats,.filter-grid,.features,.details{
+    grid-template-columns:1fr;
+  }
+  .search{display:block}
+  .search input{width:100%}
+  .search .btn{width:100%;margin-top:6px}
+  .container{width:92%}
+}
+</style>
 </head>
+
 <body>
-  <div id="root">
-    <h1>IET Tender Platform</h1>
-    <p>Initial project scaffold.</p>
+
+<header>
+  <div class="logo">IET<span>™</span></div>
+  <nav>
+    <a href="#">Home</a>
+    <a href="#tenders">Tenders</a>
+    <a href="#features">Features</a>
+    <a href="#">Login</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>Find the Right Tender.<br>Win the Right Opportunity.</h1>
+  <p>India's smart tender discovery platform</p>
+
+  <div class="search">
+    <input id="searchInput"
+      type="text"
+      placeholder="Search tender by keyword, title, department...">
+    <button class="btn" onclick="searchTenders()">Search Tenders</button>
   </div>
+</section>
+
+<div class="container">
+
+  <h2 class="section-title">Quick Search</h2>
+
+  <div class="stats">
+    <div class="stat">
+      <b>1,24,550+</b>
+      <span>All Tenders</span>
+    </div>
+    <div class="stat">
+      <b>32,450+</b>
+      <span>Central Government</span>
+    </div>
+    <div class="stat">
+      <b>48,230+</b>
+      <span>State Government</span>
+    </div>
+    <div class="stat">
+      <b>21,780+</b>
+      <span>PSU Tenders</span>
+    </div>
+  </div>
+
+  <div class="filters">
+    <h2 class="section-title">Search & Filters</h2>
+
+    <div class="filter-grid">
+      <select id="type">
+        <option value="">Tender Type</option>
+        <option>Open Tender</option>
+        <option>Limited Tender</option>
+        <option>EOI</option>
+      </select>
+
+      <select id="authority">
+        <option value="">Authority</option>
+        <option>Central Government</option>
+        <option>State Government</option>
+        <option>PSU</option>
+        <option>Private</option>
+      </select>
+
+      <select>
+        <option>Category</option>
+        <option>Construction</option>
+        <option>IT & Software</option>
+        <option>Healthcare</option>
+        <option>Infrastructure</option>
+      </select>
+
+      <select>
+        <option>State / UT</option>
+        <option>Delhi</option>
+        <option>Maharashtra</option>
+        <option>Uttar Pradesh</option>
+        <option>Uttarakhand</option>
+      </select>
+    </div>
+  </div>
+
+  <section class="tenders" id="tenders">
+    <h2 class="section-title">Latest Tenders</h2>
+
+    <div class="card" data-search="construction office building ministry housing central">
+      <span class="badge">Central Government • New</span>
+      <h3>Construction of Office Building</h3>
+      <div class="org">Ministry of Housing & Urban Affairs</div>
+
+      <div class="details">
+        <div class="detail">
+          <small>Estimated Value</small>
+          <b>₹25.80 Cr</b>
+        </div>
+        <div class="detail">
+          <small>Closing Date</small>
+          <b>20 Jun 2024</b>
+        </div>
+        <div class="detail">
+          <small>Location</small>
+          <b>New Delhi</b>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn">View Details</button>
+        <button class="btn outline" onclick="saveTender(this)">♡ Save</button>
+      </div>
+    </div>
+
+    <div class="card" data-search="road construction public works department maharashtra state">
+      <span class="badge">State Government • New</span>
+      <h3>Road Construction Work</h3>
+      <div class="org">Public Works Department, Maharashtra</div>
+
+      <div class="details">
+        <div class="detail">
+          <small>Estimated Value</small>
+          <b>₹12.45 Cr</b>
+        </div>
+        <div class="detail">
+          <small>Closing Date</small>
+          <b>18 Jun 2024</b>
+        </div>
+        <div class="detail">
+          <small>Location</small>
+          <b>Mumbai, Maharashtra</b>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn">View Details</button>
+        <button class="btn outline" onclick="saveTender(this)">♡ Save</button>
+      </div>
+    </div>
+
+    <div class="card" data-search="electrical equipment bhel haridwar psu">
+      <span class="badge">PSU Tender</span>
+      <h3>Supply of Electrical Equipment</h3>
+      <div class="org">BHEL, Haridwar</div>
+
+      <div class="details">
+        <div class="detail">
+          <small>Estimated Value</small>
+          <b>₹8.75 Cr</b>
+        </div>
+        <div class="detail">
+          <small>Closing Date</small>
+          <b>15 Jun 2024</b>
+        </div>
+        <div class="detail">
+          <small>Location</small>
+          <b>Haridwar, Uttarakhand</b>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn">View Details</button>
+        <button class="btn outline" onclick="saveTender(this)">♡ Save</button>
+      </div>
+    </div>
+
+  </section>
+
+  <section id="features">
+    <h2 class="section-title">Why IET?</h2>
+
+    <div class="features">
+      <div class="feature">
+        <h3>🔎 Smart Search</h3>
+        <p>Find relevant government and non-government tenders quickly.</p>
+      </div>
+
+      <div class="feature">
+        <h3>🔔 Deadline Alerts</h3>
+        <p>Track important closing dates and never miss opportunities.</p>
+      </div>
+
+      <div class="feature">
+        <h3>🤖 AI Assistant</h3>
+        <p>Understand tender requirements and make better decisions.</p>
+      </div>
+
+      <div class="feature">
+        <h3>♡ Watchlist</h3>
+        <p>Save and track tenders that matter to your business.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <h3>IET – India Tender Platform</h3>
+  <p>Find. Filter. Bid. Win.</p>
+  <p style="margin-top:10px;font-size:13px;opacity:.7">
+    © 2026 IET Tender Platform
+  </p>
+</footer>
+
+<script>
+function searchTenders(){
+  const query=document.getElementById("searchInput").value.toLowerCase().trim();
+  const cards=document.querySelectorAll(".card");
+
+  cards.forEach(card=>{
+    const text=card.dataset.search.toLowerCase();
+    card.style.display=(!query || text.includes(query)) ? "block" : "none";
+  });
+
+  document.getElementById("tenders").scrollIntoView({
+    behavior:"smooth"
+  });
+}
+
+function saveTender(button){
+  if(button.innerText.includes("♡")){
+    button.innerText="♥ Saved";
+  }else{
+    button.innerText="♡ Save";
+  }
+}
+</script>
+
 </body>
-</html>
+  </html>
