@@ -22,7 +22,7 @@ body{
 header{
   background:#123b6d;
   color:white;
-  padding:18px 20px;
+  padding:20px;
   text-align:center;
 }
 
@@ -33,11 +33,10 @@ header h1{
 header p{
   margin-top:6px;
   font-size:14px;
-  opacity:.9;
 }
 
 .container{
-  max-width:1000px;
+  max-width:1050px;
   margin:25px auto;
   padding:0 15px;
 }
@@ -50,8 +49,8 @@ header p{
 }
 
 .search-box h2{
-  margin-bottom:15px;
   color:#123b6d;
+  margin-bottom:15px;
 }
 
 .search-row{
@@ -73,7 +72,7 @@ header p{
 button{
   border:0;
   border-radius:7px;
-  padding:13px 20px;
+  padding:13px 18px;
   cursor:pointer;
   font-size:15px;
 }
@@ -83,8 +82,9 @@ button{
   color:white;
 }
 
-.search-btn:hover{
-  background:#0d2e55;
+.clear-btn{
+  background:#777;
+  color:white;
 }
 
 .results{
@@ -93,25 +93,25 @@ button{
 
 .result-count{
   margin-bottom:12px;
-  font-weight:bold;
   color:#555;
+  font-weight:bold;
 }
 
 .tender-card{
   background:white;
-  padding:18px;
-  margin-bottom:14px;
+  padding:20px;
+  margin-bottom:15px;
   border-radius:10px;
   box-shadow:0 2px 9px rgba(0,0,0,.07);
 }
 
 .tender-card h3{
   color:#123b6d;
-  margin-bottom:9px;
+  margin-bottom:10px;
 }
 
 .tender-card p{
-  margin:5px 0;
+  margin:6px 0;
   font-size:14px;
 }
 
@@ -121,8 +121,12 @@ button{
   color:white;
 }
 
-.view-btn:hover{
-  background:#11663b;
+.no-results{
+  background:white;
+  padding:25px;
+  border-radius:10px;
+  text-align:center;
+  color:#777;
 }
 
 .hidden{
@@ -138,17 +142,26 @@ button{
 
 .detail-page h2{
   color:#123b6d;
-  margin-bottom:18px;
+  margin-bottom:20px;
 }
 
 .detail-row{
-  padding:12px 0;
+  padding:13px 0;
   border-bottom:1px solid #eee;
 }
 
 .detail-row strong{
   display:inline-block;
-  width:180px;
+  width:190px;
+}
+
+.status{
+  display:inline-block;
+  padding:5px 12px;
+  border-radius:20px;
+  background:#dff5e8;
+  color:#16834b;
+  font-weight:bold;
 }
 
 .back-btn{
@@ -157,21 +170,22 @@ button{
   margin-bottom:18px;
 }
 
-.apply-btn{
+.official-btn{
+  display:inline-block;
+  margin-top:22px;
+  padding:13px 20px;
   background:#16834b;
   color:white;
-  margin-top:20px;
+  text-decoration:none;
+  border-radius:7px;
 }
 
-.no-results{
-  background:white;
-  padding:20px;
-  border-radius:10px;
-  text-align:center;
-  color:#777;
+.official-btn:hover{
+  background:#11663b;
 }
 
 @media(max-width:600px){
+
   header h1{
     font-size:23px;
   }
@@ -182,14 +196,14 @@ button{
 
   .search-row input,
   .search-row select,
-  .search-btn{
+  .search-row button{
     width:100%;
   }
 
   .detail-row strong{
     display:block;
     width:auto;
-    margin-bottom:4px;
+    margin-bottom:5px;
   }
 }
 </style>
@@ -204,111 +218,175 @@ button{
 
 <div class="container">
 
-  <!-- SEARCH PAGE -->
-  <div id="searchPage">
+<!-- ================= SEARCH PAGE ================= -->
 
-    <div class="search-box">
-      <h2>Search Tenders</h2>
+<div id="searchPage">
 
-      <div class="search-row">
+  <div class="search-box">
 
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="Search State, Company, Tender..."
-        >
-<input
-  type="text"
-  id="tenderIdInput"
-  placeholder="Tender ID..."
->
-        <select id="category">
-          <option value="">All Categories</option>
-          <option value="Construction">Construction</option>
-          <option value="Road">Road</option>
-          <option value="Electrical">Electrical</option>
-          <option value="IT">IT</option>
-          <option value="Supply">Supply</option>
-        </select>
+    <h2>Search Tenders</h2>
 
-        <button class="search-btn" onclick="searchTenders()">
-          Search
-        </button><button onclick="clearSearch()">
-  Clear
-        </button>
+    <div class="search-row">
 
-      </div>
-    </div>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="State, Company or Tender..."
+      >
 
-    <div class="results">
+      <input
+        type="text"
+        id="tenderIdInput"
+        placeholder="Tender ID..."
+      >
 
-      <div id="resultCount" class="result-count"></div>
+      <select id="category">
 
-      <div id="tenderResults"></div>
+        <option value="">All Categories</option>
 
-    </div>
+        <option value="Construction">
+          Construction
+        </option>
 
-  </div>
+        <option value="Road">
+          Road
+        </option>
 
+        <option value="Electrical">
+          Electrical
+        </option>
 
-  <!-- DETAIL PAGE -->
-  <div id="detailPage" class="hidden">
+        <option value="IT">
+          IT
+        </option>
 
-    <button class="back-btn" onclick="showSearchPage()">
-      ← Back to Results
-    </button>
+        <option value="Supply">
+          Supply
+        </option>
 
-    <div class="detail-page">
+      </select>
 
-      <h2 id="detailTitle"></h2>
+      <button
+        class="search-btn"
+        onclick="searchTenders()">
+        Search
+      </button>
 
-      <div class="detail-row">
-        <strong>Tender ID:</strong>
-        <span id="detailId"></span>
-      </div>
-
-      <div class="detail-row">
-        <strong>Organization:</strong>
-        <span id="detailOrg"></span>
-      </div>
-
-      <div class="detail-row">
-        <strong>Location:</strong>
-        <span id="detailLocation"></span>
-      </div>
-
-      <div class="detail-row">
-        <strong>Category:</strong>
-        <span id="detailCategory"></span>
-      </div>
-
-      <div class="detail-row">
-        <strong>Estimated Value:</strong>
-        <span id="detailValue"></span>
-      </div>
-
-      <div class="detail-row">
-        <strong>Closing Date:</strong>
-        <span id="detailDate"></span>
-      </div>
-
-      <div class="detail-row">
-        <strong>Status:</strong>
-        <span>Open</span>
-      </div>
-
-      <button class="apply-btn" onclick="alert('Tender application module will be connected in the next stage.')">
-        Apply / View Official Tender
+      <button
+        class="clear-btn"
+        onclick="clearSearch()">
+        Clear
       </button>
 
     </div>
 
   </div>
 
+
+  <div class="results">
+
+    <div
+      id="resultCount"
+      class="result-count">
+    </div>
+
+    <div id="tenderResults"></div>
+
+  </div>
+
+</div>
+
+
+<!-- ================= DETAIL PAGE ================= -->
+
+<div id="detailPage" class="hidden">
+
+  <button
+    class="back-btn"
+    onclick="showSearchPage()">
+    ← Back to Results
+  </button>
+
+  <div class="detail-page">
+
+    <h2 id="detailTitle"></h2>
+
+    <div class="detail-row">
+      <strong>Tender ID</strong>
+      <span id="detailId"></span>
+    </div>
+
+    <div class="detail-row">
+      <strong>Organization</strong>
+      <span id="detailOrg"></span>
+    </div>
+
+    <div class="detail-row">
+      <strong>Location</strong>
+      <span id="detailLocation"></span>
+    </div>
+
+    <div class="detail-row">
+      <strong>Category</strong>
+      <span id="detailCategory"></span>
+    </div>
+
+    <div class="detail-row">
+      <strong>Estimated Value</strong>
+      <span id="detailValue"></span>
+    </div>
+
+    <div class="detail-row">
+      <strong>Publish Date</strong>
+      <span id="detailPublishDate"></span>
+    </div>
+
+    <div class="detail-row">
+      <strong>Closing Date</strong>
+      <span id="detailDate"></span>
+    </div>
+
+    <div class="detail-row">
+      <strong>Tender Fee</strong>
+      <span id="detailFee"></span>
+    </div>
+
+    <div class="detail-row">
+      <strong>EMD</strong>
+      <span id="detailEmd"></span>
+    </div>
+
+    <div class="detail-row">
+      <strong>Work Period</strong>
+      <span id="detailWorkPeriod"></span>
+    </div>
+
+    <div class="detail-row">
+      <strong>Status</strong>
+      <span
+        id="detailStatus"
+        class="status">
+      </span>
+    </div>
+
+    <a
+      id="officialLink"
+      class="official-btn"
+      href="#"
+      target="_blank">
+      Official Tender
+    </a>
+
+  </div>
+
+</div>
+
 </div>
 
 
 <script>
+
+/* ================= TENDER DATA ================= */
 
 const tenders = [
 
@@ -319,7 +397,13 @@ const tenders = [
     location:"Maharashtra",
     category:"Road",
     value:"₹12.50 Crore",
-    date:"30 September 2026"
+    publishDate:"28 August 2026",
+    date:"30 September 2026",
+    tenderFee:"₹5,000",
+    emd:"₹25,00,000",
+    workPeriod:"12 Months",
+    status:"Open",
+    officialLink:"https://example.com"
   },
 
   {
@@ -329,7 +413,13 @@ const tenders = [
     location:"Mumbai, Maharashtra",
     category:"Construction",
     value:"₹8.20 Crore",
-    date:"12 October 2026"
+    publishDate:"28 August 2026",
+    date:"12 October 2026",
+    tenderFee:"₹7,500",
+    emd:"₹16,40,000",
+    workPeriod:"18 Months",
+    status:"Open",
+    officialLink:"https://example.com"
   },
 
   {
@@ -339,7 +429,13 @@ const tenders = [
     location:"Bhopal, Madhya Pradesh",
     category:"Electrical",
     value:"₹2.75 Crore",
-    date:"05 October 2026"
+    publishDate:"27 August 2026",
+    date:"05 October 2026",
+    tenderFee:"₹3,000",
+    emd:"₹5,50,000",
+    workPeriod:"6 Months",
+    status:"Open",
+    officialLink:"https://example.com"
   },
 
   {
@@ -349,7 +445,13 @@ const tenders = [
     location:"Bengaluru, Karnataka",
     category:"IT",
     value:"₹1.85 Crore",
-    date:"18 October 2026"
+    publishDate:"26 August 2026",
+    date:"18 October 2026",
+    tenderFee:"₹2,500",
+    emd:"₹3,70,000",
+    workPeriod:"8 Months",
+    status:"Open",
+    officialLink:"https://example.com"
   },
 
   {
@@ -359,7 +461,13 @@ const tenders = [
     location:"Bhopal, Madhya Pradesh",
     category:"Road",
     value:"₹6.40 Crore",
-    date:"22 October 2026"
+    publishDate:"25 August 2026",
+    date:"22 October 2026",
+    tenderFee:"₹4,000",
+    emd:"₹12,80,000",
+    workPeriod:"10 Months",
+    status:"Open",
+    officialLink:"https://example.com"
   },
 
   {
@@ -369,26 +477,45 @@ const tenders = [
     location:"Lucknow, Uttar Pradesh",
     category:"Supply",
     value:"₹3.10 Crore",
-    date:"28 October 2026"
+    publishDate:"24 August 2026",
+    date:"28 October 2026",
+    tenderFee:"₹3,500",
+    emd:"₹6,20,000",
+    workPeriod:"5 Months",
+    status:"Open",
+    officialLink:"https://example.com"
   }
 
 ];
 
 
+/* ================= CURRENT RESULTS ================= */
+
+let currentResults = tenders;
+
+
+/* ================= DISPLAY TENDERS ================= */
+
 function displayTenders(list){
 
-  const results = document.getElementById("tenderResults");
-  const count = document.getElementById("resultCount");
+  const results =
+    document.getElementById("tenderResults");
+
+  const count =
+    document.getElementById("resultCount");
 
   results.innerHTML = "";
 
-  count.innerText = list.length + " tender(s) found";
+  count.innerText =
+    list.length + " tender(s) found";
+
 
   if(list.length === 0){
 
     results.innerHTML = `
       <div class="no-results">
-        No tenders found. Try another State, Company or Category.
+        No tenders found.
+        Try another State, Company or Category.
       </div>
     `;
 
@@ -404,15 +531,30 @@ function displayTenders(list){
 
         <h3>${tender.title}</h3>
 
-        <p><strong>Organization:</strong> ${tender.organization}</p>
+        <p>
+          <strong>Organization:</strong>
+          ${tender.organization}
+        </p>
 
-        <p><strong>Location:</strong> ${tender.location}</p>
+        <p>
+          <strong>Location:</strong>
+          ${tender.location}
+        </p>
 
-        <p><strong>Category:</strong> ${tender.category}</p>
+        <p>
+          <strong>Category:</strong>
+          ${tender.category}
+        </p>
 
-        <p><strong>Estimated Value:</strong> ${tender.value}</p>
+        <p>
+          <strong>Estimated Value:</strong>
+          ${tender.value}
+        </p>
 
-        <p><strong>Closing Date:</strong> ${tender.date}</p>
+        <p>
+          <strong>Closing Date:</strong>
+          ${tender.date}
+        </p>
 
         <button
           class="view-btn"
@@ -429,8 +571,7 @@ function displayTenders(list){
 }
 
 
-let currentResults = tenders;
-
+/* ================= SEARCH ================= */
 
 function searchTenders(){
 
@@ -440,45 +581,79 @@ function searchTenders(){
     .toLowerCase()
     .trim();
 
+  const tenderId =
+    document.getElementById("tenderIdInput")
+    .value
+    .toLowerCase()
+    .trim();
+
   const selectedCategory =
     document.getElementById("category").value;
 
 
-  currentResults = tenders.filter(tender => {
+  currentResults =
+    tenders.filter(tender => {
 
-    const searchableText = (
+      const searchableText = (
 
-      tender.title + " " +
-      tender.organization + " " +
-      tender.location + " " +
-      tender.category
+        tender.title + " " +
+        tender.organization + " " +
+        tender.location + " " +
+        tender.category
 
-    ).toLowerCase();
-
-
-    const textMatch =
-      searchText === "" ||
-      searchableText.includes(searchText);
+      ).toLowerCase();
 
 
-    const categoryMatch =
-      selectedCategory === "" ||
-      tender.category === selectedCategory;
+      const textMatch =
+        searchText === "" ||
+        searchableText.includes(searchText);
 
 
-    return textMatch && categoryMatch;
+      const idMatch =
+        tenderId === "" ||
+        tender.id.toLowerCase().includes(tenderId);
 
-  });
+
+      const categoryMatch =
+        selectedCategory === "" ||
+        tender.category === selectedCategory;
+
+
+      return (
+        textMatch &&
+        idMatch &&
+        categoryMatch
+      );
+
+    });
 
 
   displayTenders(currentResults);
-
 }
 
+
+/* ================= CLEAR SEARCH ================= */
+
+function clearSearch(){
+
+  document.getElementById("searchInput").value = "";
+
+  document.getElementById("tenderIdInput").value = "";
+
+  document.getElementById("category").value = "";
+
+  currentResults = tenders;
+
+  displayTenders(tenders);
+}
+
+
+/* ================= OPEN DETAILS ================= */
 
 function openTender(index){
 
   const tender = currentResults[index];
+
 
   document.getElementById("searchPage")
     .classList.add("hidden");
@@ -505,11 +680,31 @@ function openTender(index){
   document.getElementById("detailValue")
     .innerText = tender.value;
 
+  document.getElementById("detailPublishDate")
+    .innerText = tender.publishDate;
+
   document.getElementById("detailDate")
     .innerText = tender.date;
 
+  document.getElementById("detailFee")
+    .innerText = tender.tenderFee;
+
+  document.getElementById("detailEmd")
+    .innerText = tender.emd;
+
+  document.getElementById("detailWorkPeriod")
+    .innerText = tender.workPeriod;
+
+  document.getElementById("detailStatus")
+    .innerText = tender.status;
+
+  document.getElementById("officialLink")
+    .href = tender.officialLink;
+
 }
 
+
+/* ================= BACK ================= */
 
 function showSearchPage(){
 
@@ -522,65 +717,11 @@ function showSearchPage(){
 }
 
 
-// Show all tenders when page loads
+/* ================= START ================= */
+
 displayTenders(tenders);
 
 </script>
-function searchTenders(){
 
-  const searchText =
-    document.getElementById("searchInput")
-    .value
-    .toLowerCase()
-    .trim();
-
-  const tenderId =
-    document.getElementById("tenderIdInput")
-    .value
-    .toLowerCase()
-    .trim();
-
-  const selectedCategory =
-    document.getElementById("category").value;
-
-  currentResults = tenders.filter(tender => {
-
-    const searchableText = (
-      tender.title + " " +
-      tender.organization + " " +
-      tender.location + " " +
-      tender.category
-    ).toLowerCase();
-
-    const textMatch =
-      searchText === "" ||
-      searchableText.includes(searchText);
-
-    const idMatch =
-      tenderId === "" ||
-      tender.id.toLowerCase().includes(tenderId);
-
-    const categoryMatch =
-      selectedCategory === "" ||
-      tender.category === selectedCategory;
-
-    return textMatch && idMatch && categoryMatch;
-
-  });
-
-  displayTenders(currentResults);
-}
-
-
-function clearSearch(){
-
-  document.getElementById("searchInput").value = "";
-  document.getElementById("tenderIdInput").value = "";
-  document.getElementById("category").value = "";
-
-  currentResults = tenders;
-
-  displayTenders(tenders);
-}
 </body>
   </html>
