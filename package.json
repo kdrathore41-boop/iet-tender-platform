@@ -1,0 +1,12 @@
+{
+  "name": "iet-tender-platform",
+  "version": "1.0.0",
+  "description": "IET India E-Tender Platform Backend",
+  "main": "api.js",
+  "scripts": {
+    "start": "node api.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
