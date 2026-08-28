@@ -217,7 +217,11 @@ button{
           id="searchInput"
           placeholder="Search State, Company, Tender..."
         >
-
+<input
+  type="text"
+  id="tenderIdInput"
+  placeholder="Tender ID..."
+>
         <select id="category">
           <option value="">All Categories</option>
           <option value="Construction">Construction</option>
@@ -229,6 +233,8 @@ button{
 
         <button class="search-btn" onclick="searchTenders()">
           Search
+        </button><button onclick="clearSearch()">
+  Clear
         </button>
 
       </div>
@@ -520,6 +526,61 @@ function showSearchPage(){
 displayTenders(tenders);
 
 </script>
+function searchTenders(){
 
+  const searchText =
+    document.getElementById("searchInput")
+    .value
+    .toLowerCase()
+    .trim();
+
+  const tenderId =
+    document.getElementById("tenderIdInput")
+    .value
+    .toLowerCase()
+    .trim();
+
+  const selectedCategory =
+    document.getElementById("category").value;
+
+  currentResults = tenders.filter(tender => {
+
+    const searchableText = (
+      tender.title + " " +
+      tender.organization + " " +
+      tender.location + " " +
+      tender.category
+    ).toLowerCase();
+
+    const textMatch =
+      searchText === "" ||
+      searchableText.includes(searchText);
+
+    const idMatch =
+      tenderId === "" ||
+      tender.id.toLowerCase().includes(tenderId);
+
+    const categoryMatch =
+      selectedCategory === "" ||
+      tender.category === selectedCategory;
+
+    return textMatch && idMatch && categoryMatch;
+
+  });
+
+  displayTenders(currentResults);
+}
+
+
+function clearSearch(){
+
+  document.getElementById("searchInput").value = "";
+  document.getElementById("tenderIdInput").value = "";
+  document.getElementById("category").value = "";
+
+  currentResults = tenders;
+
+  displayTenders(tenders);
+}
 </body>
   </html>
