@@ -1,1 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IET - India E-Tender Platform</title>
 
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+font-family:Arial,Helvetica,sans-serif;
+background:#f4f6f9;
+color:#222;
+}
+
+header{
+background:#123b6d;
+color:white;
+padding:22px 15px;
+text-align:center;
+}
+
+header h1{
+font-size:28px;
+}
+
+header p{
+margin-top:7px;
+font-size:14px;
+}
+
+.container{
+max-width:1050px;
+margin:25px auto;
+padding:0 15px;
+}
+
+.search-box{
+background:white;
+padding:20px;
+border-radius:12px;
+box-shadow:0 3px 12px rgba(0,0,0,.08);
+}
+
+.search-box h2{
+color:#123b6d;
+margin-bottom:15px;
+}
+
+.search-row{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+input,select,button{
+padding:13px;
+border-radius:7px;
+font-size:15px;
+}
+
+input,select{
+border:1px solid #ccc;
+flex:1;
+min-width:180px;
+}
+
+button{
+border:0;
+cursor:pointer;
+}
+
+.search{
+background:#123b6d;
+color:white;
+}
+
+.clear{
+background:#777;
+color:white;
+}
+
+#count{
+margin:20px 0 12px;
+font-weight:bold;
+color:#555;
+}
+
+.card{
+background:white;
+padding:20px;
+margin-bottom:15px;
+border-radius:10px;
+box-shadow:0 2px 9px rgba(0,0,0,.07);
+}
+
+.card h3{
+color:#123b6d;
+margin-bottom:10px;
+}
+
+.card p{
+margin:7px 0;
+font-size:14px;
+}
+
+.view{
+background:#16834b;
+color:white;
+margin-top:10px;
+}
+
+#details{
+display:none;
+background:white;
+padding:22px;
+border-radius:12px;
+box-shadow:0 3px 12px rgba(0,0,0,.08);
+}
+
+.back{
+background:#555;
+color:white;
+margin-bottom:18px;
+}
+
+.row{
+padding:12px 0;
+border-bottom:1px solid #eee;
+}
+
+.row strong{
+display:inline-block;
+width:180px;
+}
+
+.official{
+display:inline-block;
+margin-top:20px;
+padding:13px 18px;
+background:#16834b;
+color:white;
+text-decoration:none;
+border-radius:7px;
+}
+
+.error{
+background:#fff0f0;
+color:#a00000;
+padding:20px;
+border-radius:10px;
+}
+
+@media(max-width:600px){
+
+header h1{
+font-size:23px;
+}
+
+.search-row{
+flex-direction:column;
+}
+
+input,select,button{
+width:100%;
+}
+
+.row strong{
+display:block;
+width:auto;
+margin-bottom:5px;
+}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>IET - India E-Tender Platform</h1>
+<p>Search and explore government tenders across India</p>
+</header>
+
+<div class="container">
+
+<div id="main">
+
+<div class="search-box">
+
+<h2>Search Tenders</h2>
+
+<div class="search-row">
+
+<input
+id="search"
+placeholder="State, Company or Tender">
+
+<input
+id="tenderId"
+placeholder="Tender ID">
+
+<select id="category">
+
+<option value="">All Categories</option>
+<option>Construction</option>
+<option>Road</option>
+<option>Electrical</option>
+<option>IT</option>
+<option>Supply</option>
+
+</select>
+
+<button class="search" onclick="searchTenders()">
+Search
+</button>
+
+<button class="clear" onclick="clearSearch()">
+Clear
+</button>
+
+</div>
+</div>
+
+<div id="count">
+Connecting to IET Backend...
+</div>
+
+<div id="results">
+Loading tenders...
+</div>
+
+</div>
+
+
+<div id="details">
+
+<button class="back" onclick="backToResults()">
+← Back to Results
+</button>
+
+<h2 id="dTitle"></h2>
+
+<div class="row">
+<strong>Tender ID</strong>
+<span id="dId"></span>
+</div>
+
+<div class="row">
+<strong>Organization</strong>
+<span id="dOrg"></span>
+</div>
+
+<div class="row">
+<strong>Location</strong>
+<span id="dLocation"></span>
+</div>
+
+<div class="row">
+<strong>Category</strong>
+<span id="dCategory"></span>
+</div>
+
+<div class="row">
+<strong>Value</strong>
+<span id="dValue"></span>
+</div>
+
+<div class="row">
+<strong>Publish Date</strong>
+<span id="dPublish"></span>
+</div>
+
+<div class="row">
+<strong>Closing Date</strong>
+<span id="dClosing"></span>
+</div>
+
+<div class="row">
+<strong>Tender Fee</strong>
+<span id="dFee"></span>
+</div>
+
+<div class="row">
+<strong>EMD</strong>
+<span id="dEmd"></span>
+</div>
+
+<div class="row">
+<strong>Work Period</strong>
+<span id="dWork"></span>
+</div>
+
+<div class="row">
+<strong>Status</strong>
+<span id="dStatus"></span>
+</div>
+
+<a id="official" class="official"
+target="_blank">
+Official Tender Source
+</a>
+
+</div>
+
+</div>
+
+
+<script>
+
+const API =
+"https://iet-tender-platform.onrender.com/api/tenders";
+
+let tenders = [];
+let filtered = [];
+
+
+async function loadTenders(){
+
+try{
+
+const response = await fetch(API);
+
+if(!response.ok){
+throw new Error("API error");
+}
+
+const data = await response.json();
+
+if(!data.tenders){
+throw new Error("Tender data missing");
+}
+
+tenders = data.tenders;
+filtered = tenders;
+
+showTenders(tenders);
+
+}catch(error){
+
+document.getElementById("count").innerText =
+"Unable to load tender data";
+
+document.getElementById("results").innerHTML =
+'<div class="error">Unable to connect to IET backend.</div>';
+
+console.error(error);
+
+}
+
+}
+
+
+function showTenders(list){
+
+const results =
+document.getElementById("results");
+
+const count =
+document.getElementById("count");
+
+count.innerText =
+list.length + " tender(s) found";
+
+results.innerHTML = "";
+
+
+if(list.length === 0){
+
+results.innerHTML =
+'<div class="card">No tenders found.</div>';
+
+return;
+
+}
+
+
+list.forEach((tender,index)=>{
+
+results.innerHTML += `
+
+<div class="card">
+
+<h3>${tender.title || "-"}</h3>
+
+<p>
+<strong>Organization:</strong>
+${tender.organization || "-"}
+</p>
+
+<p>
+<strong>Location:</strong>
+${tender.location || "-"}
+</p>
+
+<p>
+<strong>Category:</strong>
+${tender.category || "-"}
+</p>
+
+<p>
+<strong>Estimated Value:</strong>
+${tender.value || "-"}
+</p>
+
+<p>
+<strong>Closing Date:</strong>
+${tender.closingDate || "-"}
+</p>
+
+<button
+class="view"
+onclick="viewTender(${index})">
+
+View Details
+
+</button>
+
+</div>
+
+`;
+
+});
+
+}
+
+
+function searchTenders(){
+
+const text =
+document.getElementById("search")
+.value
+.toLowerCase()
+.trim();
+
+const id =
+document.getElementById("tenderId")
+.value
+.toLowerCase()
+.trim();
+
+const category =
+document.getElementById("category")
+.value;
+
+
+filtered = tenders.filter(tender=>{
+
+const allText = (
+
+tender.title + " " +
+tender.organization + " " +
+tender.location + " " +
+tender.state + " " +
+tender.category
+
+).toLowerCase();
+
+
+return (
+
+(text === "" || allText.includes(text))
+
+&&
+
+(id === "" ||
+(tender.id || "").toLowerCase().includes(id))
+
+&&
+
+(category === "" ||
+tender.category === category)
+
+);
+
+});
+
+showTenders(filtered);
+
+}
+
+
+function clearSearch(){
+
+document.getElementById("search").value = "";
+document.getElementById("tenderId").value = "";
+document.getElementById("category").value = "";
+
+filtered = tenders;
+
+showTenders(tenders);
+
+}
+
+
+function viewTender(index){
+
+const tender =
+filtered[index];
+
+if(!tender)return;
+
+
+document.getElementById("main").style.display =
+"none";
+
+document.getElementById("details").style.display =
+"block";
+
+
+document.getElementById("dTitle").innerText =
+tender.title || "-";
+
+document.getElementById("dId").innerText =
+tender.id || "-";
+
+document.getElementById("dOrg").innerText =
+tender.organization || "-";
+
+document.getElementById("dLocation").innerText =
+tender.location || "-";
+
+document.getElementById("dCategory").innerText =
+tender.category || "-";
+
+document.getElementById("dValue").innerText =
+tender.value || "-";
+
+document.getElementById("dPublish").innerText =
+tender.publishDate || "-";
+
+document.getElementById("dClosing").innerText =
+tender.closingDate || "-";
+
+document.getElementById("dFee").innerText =
+tender.tenderFee || "-";
+
+document.getElementById("dEmd").innerText =
+tender.emd || "-";
+
+document.getElementById("dWork").innerText =
+tender.workPeriod || "-";
+
+document.getElementById("dStatus").innerText =
+tender.status || "-";
+
+document.getElementById("official").href =
+tender.officialLink || "#";
+
+}
+
+
+function backToResults(){
+
+document.getElementById("details").style.display =
+"none";
+
+document.getElementById("main").style.display =
+"block";
+
+}
+
+
+loadTenders();
+
+</script>
+
+</body>
+  </html>
