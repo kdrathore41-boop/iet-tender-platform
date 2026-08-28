@@ -1,10 +1,10 @@
 const fs = require("fs");
 
 const INPUT_FILE = "./data.json";
+const OUTPUT_FILE = "./validated-tenders.json";
 
 function validateTender(tender) {
-
-  const requiredFields = [
+  const required = [
     "id",
     "title",
     "organization",
@@ -17,7 +17,7 @@ function validateTender(tender) {
     "officialLink"
   ];
 
-  const missing = requiredFields.filter(
+  const missing = required.filter(
     field =>
       !tender[field] ||
       String(tender[field]).trim() === ""
@@ -29,100 +29,76 @@ function validateTender(tender) {
   };
 }
 
+function main() {
+  console.log("IET Tender Data Validator");
+  console.log("-------------------------");
 
-function runCollector() {
+  if (!fs.existsSync(INPUT_FILE)) {
+    throw new Error("data.json not found");
+  }
 
-  console.log("=================================");
-  console.log("IET Tender Collector");
-  console.log("=================================");
+  const data = JSON.parse(
+    fs.readFileSync(INPUT_FILE, "utf8")
+  );
 
-  try {
-
-    const raw =
-      fs.readFileSync(INPUT_FILE, "utf8");
-
-    const data =
-      JSON.parse(raw);
-
-    if (!Array.isArray(data.tenders)) {
-      throw new Error(
-        "data.json must contain a tenders array"
-      );
-    }
-
-    let valid = 0;
-    let invalid = 0;
-
-    data.tenders.forEach((tender, index) => {
-
-      const result =
-        validateTender(tender);
-
-      if (result.valid) {
-
-        valid++;
-
-        console.log(
-          `✓ Tender ${index + 1}: ${tender.id}`
-        );
-
-      } else {
-
-        invalid++;
-
-        console.log(
-          `✗ Tender ${index + 1}: ${tender.id || "Unknown"}`
-        );
-
-        console.log(
-          "  Missing:",
-          result.missing.join(", ")
-        );
-      }
-
-    });
-
-
-    console.log("---------------------------------");
-
-    console.log(
-      `Total: ${data.tenders.length}`
+  if (!Array.isArray(data.tenders)) {
+    throw new Error(
+      "data.json must contain a 'tenders' array"
     );
+  }
 
-    console.log(
-      `Valid: ${valid}`
-    );
+  const validTenders = [];
+  const rejected = [];
 
-    console.log(
-      `Invalid: ${invalid}`
-    );
+  data.tenders.forEach((tender, index) => {
+    const result = validateTender(tender);
 
-    console.log("---------------------------------");
-
-    if (invalid === 0) {
-
-      console.log(
-        "IET Collector validation: PASS"
-      );
-
+    if (result.valid) {
+      validTenders.push({
+        ...tender,
+        verificationStatus: "SOURCE_REVIEW_REQUIRED",
+        lastUpdated: new Date().toISOString()
+      });
     } else {
-
-      console.log(
-        "IET Collector validation: REVIEW REQUIRED"
-      );
-
+      rejected.push({
+        index,
+        id: tender.id || null,
+        missing: result.missing
+      });
     }
+  });
 
-  } catch (error) {
+  const output = {
+    platform: "IET - India E-Tender Platform",
+    generatedAt: new Date().toISOString(),
+    totalInput: data.tenders.length,
+    valid: validTenders.length,
+    rejected: rejected.length,
+    tenders: validTenders,
+    rejectedRecords: rejected
+  };
 
-    console.error(
-      "Collector error:",
-      error.message
-    );
+  fs.writeFileSync(
+    OUTPUT_FILE,
+    JSON.stringify(output, null, 2),
+    "utf8"
+  );
 
-    process.exit(1);
+  console.log(`Input tenders: ${output.totalInput}`);
+  console.log(`Valid tenders: ${output.valid}`);
+  console.log(`Rejected: ${output.rejected}`);
+  console.log(`Created: ${OUTPUT_FILE}`);
+
+  if (rejected.length === 0) {
+    console.log("IET validation: PASS");
+  } else {
+    console.log("IET validation: REVIEW REQUIRED");
   }
 }
 
-
-runCollector();
+try {
+  main();
+} catch (error) {
+  console.error("Collector error:", error.message);
+  process.exit(1);
+      }
