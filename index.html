@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IET - India Tender Platform</title>
-
-<style>
+<title>IET - India Tender Platform</title><style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{
   font-family:Arial,Helvetica,sans-serif;
@@ -174,6 +171,14 @@ select{
 }
 .feature h3{margin-bottom:8px}
 .feature p{color:#65738b;font-size:14px;line-height:1.5}
+.no-results{
+  display:none;
+  background:white;
+  padding:30px;
+  text-align:center;
+  border-radius:12px;
+  color:#65738b;
+}
 footer{
   margin-top:50px;
   background:#071a38;
@@ -198,12 +203,7 @@ footer{
   .search .btn{width:100%;margin-top:6px}
   .container{width:92%}
 }
-</style>
-</head>
-
-<body>
-
-<header>
+</style></head><body><header>
   <div class="logo">IET<span>™</span></div>
   <nav>
     <a href="#">Home</a>
@@ -211,25 +211,15 @@ footer{
     <a href="#features">Features</a>
     <a href="#">Login</a>
   </nav>
-</header>
-
-<section class="hero">
+</header><section class="hero">
   <h1>Find the Right Tender.<br>Win the Right Opportunity.</h1>
-  <p>India's smart tender discovery platform</p>
-
-  <div class="search">
+  <p>India's smart tender discovery platform</p>  <div class="search">
     <input id="searchInput"
       type="text"
       placeholder="Search tender by keyword, title, department...">
-    <button class="btn" onclick="searchTenders()">Search Tenders</button>
+    <button class="btn" onclick="applyFilters()">Search Tenders</button>
   </div>
-</section>
-
-<div class="container">
-
-  <h2 class="section-title">Quick Search</h2>
-
-  <div class="stats">
+</section><div class="container">  <h2 class="section-title">Quick Search</h2>  <div class="stats">
     <div class="stat">
       <b>1,24,550+</b>
       <span>All Tenders</span>
@@ -246,187 +236,277 @@ footer{
       <b>21,780+</b>
       <span>PSU Tenders</span>
     </div>
-  </div>
+  </div>  <div class="filters">
+    <h2 class="section-title">Search & Filters</h2><div class="filter-grid">
 
-  <div class="filters">
-    <h2 class="section-title">Search & Filters</h2>
+  <select id="type" onchange="applyFilters()">
+    <option value="">Tender Type</option>
+    <option value="Open Tender">Open Tender</option>
+    <option value="Limited Tender">Limited Tender</option>
+    <option value="EOI">EOI</option>
+  </select>
 
-    <div class="filter-grid">
-      <select id="type">
-        <option value="">Tender Type</option>
-        <option>Open Tender</option>
-        <option>Limited Tender</option>
-        <option>EOI</option>
-      </select>
+  <select id="authority" onchange="applyFilters()">
+    <option value="">Authority</option>
+    <option value="Central Government">Central Government</option>
+    <option value="State Government">State Government</option>
+    <option value="PSU">PSU</option>
+    <option value="Private">Private</option>
+  </select>
 
-      <select id="authority">
-        <option value="">Authority</option>
-        <option>Central Government</option>
-        <option>State Government</option>
-        <option>PSU</option>
-        <option>Private</option>
-      </select>
+  <select id="category" onchange="applyFilters()">
+    <option value="">Category</option>
+    <option value="Construction">Construction</option>
+    <option value="IT & Software">IT & Software</option>
+    <option value="Healthcare">Healthcare</option>
+    <option value="Infrastructure">Infrastructure</option>
+  </select>
 
-      <select>
-        <option>Category</option>
-        <option>Construction</option>
-        <option>IT & Software</option>
-        <option>Healthcare</option>
-        <option>Infrastructure</option>
-      </select>
-
-      <select>
-        <option>State / UT</option>
-        <option>Delhi</option>
-        <option>Maharashtra</option>
-        <option>Uttar Pradesh</option>
-        <option>Uttarakhand</option>
-      </select>
-    </div>
-  </div>
-
-  <section class="tenders" id="tenders">
-    <h2 class="section-title">Latest Tenders</h2>
-
-    <div class="card" data-search="construction office building ministry housing central">
-      <span class="badge">Central Government • New</span>
-      <h3>Construction of Office Building</h3>
-      <div class="org">Ministry of Housing & Urban Affairs</div>
-
-      <div class="details">
-        <div class="detail">
-          <small>Estimated Value</small>
-          <b>₹25.80 Cr</b>
-        </div>
-        <div class="detail">
-          <small>Closing Date</small>
-          <b>20 Jun 2024</b>
-        </div>
-        <div class="detail">
-          <small>Location</small>
-          <b>New Delhi</b>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="btn">View Details</button>
-        <button class="btn outline" onclick="saveTender(this)">♡ Save</button>
-      </div>
-    </div>
-
-    <div class="card" data-search="road construction public works department maharashtra state">
-      <span class="badge">State Government • New</span>
-      <h3>Road Construction Work</h3>
-      <div class="org">Public Works Department, Maharashtra</div>
-
-      <div class="details">
-        <div class="detail">
-          <small>Estimated Value</small>
-          <b>₹12.45 Cr</b>
-        </div>
-        <div class="detail">
-          <small>Closing Date</small>
-          <b>18 Jun 2024</b>
-        </div>
-        <div class="detail">
-          <small>Location</small>
-          <b>Mumbai, Maharashtra</b>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="btn">View Details</button>
-        <button class="btn outline" onclick="saveTender(this)">♡ Save</button>
-      </div>
-    </div>
-
-    <div class="card" data-search="electrical equipment bhel haridwar psu">
-      <span class="badge">PSU Tender</span>
-      <h3>Supply of Electrical Equipment</h3>
-      <div class="org">BHEL, Haridwar</div>
-
-      <div class="details">
-        <div class="detail">
-          <small>Estimated Value</small>
-          <b>₹8.75 Cr</b>
-        </div>
-        <div class="detail">
-          <small>Closing Date</small>
-          <b>15 Jun 2024</b>
-        </div>
-        <div class="detail">
-          <small>Location</small>
-          <b>Haridwar, Uttarakhand</b>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="btn">View Details</button>
-        <button class="btn outline" onclick="saveTender(this)">♡ Save</button>
-      </div>
-    </div>
-
-  </section>
-
-  <section id="features">
-    <h2 class="section-title">Why IET?</h2>
-
-    <div class="features">
-      <div class="feature">
-        <h3>🔎 Smart Search</h3>
-        <p>Find relevant government and non-government tenders quickly.</p>
-      </div>
-
-      <div class="feature">
-        <h3>🔔 Deadline Alerts</h3>
-        <p>Track important closing dates and never miss opportunities.</p>
-      </div>
-
-      <div class="feature">
-        <h3>🤖 AI Assistant</h3>
-        <p>Understand tender requirements and make better decisions.</p>
-      </div>
-
-      <div class="feature">
-        <h3>♡ Watchlist</h3>
-        <p>Save and track tenders that matter to your business.</p>
-      </div>
-    </div>
-  </section>
+  <select id="state" onchange="applyFilters()">
+    <option value="">State / UT</option>
+    <option value="Delhi">Delhi</option>
+    <option value="Maharashtra">Maharashtra</option>
+    <option value="Uttar Pradesh">Uttar Pradesh</option>
+    <option value="Uttarakhand">Uttarakhand</option>
+  </select>
 
 </div>
 
-<footer>
+  </div>  <section class="tenders" id="tenders">
+    <h2 class="section-title">Latest Tenders</h2><div class="card"
+  data-search="construction office building ministry housing central government delhi"
+  data-type="Open Tender"
+  data-authority="Central Government"
+  data-category="Construction"
+  data-state="Delhi">
+
+  <span class="badge">Central Government • New</span>
+  <h3>Construction of Office Building</h3>
+  <div class="org">Ministry of Housing & Urban Affairs</div>
+
+  <div class="details">
+    <div class="detail">
+      <small>Estimated Value</small>
+      <b>₹25.80 Cr</b>
+    </div>
+    <div class="detail">
+      <small>Closing Date</small>
+      <b>20 Jun 2024</b>
+    </div>
+    <div class="detail">
+      <small>Location</small>
+      <b>New Delhi</b>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn">View Details</button>
+    <button class="btn outline" onclick="saveTender(this)">♡ Save</button>
+  </div>
+</div>
+
+<div class="card"
+  data-search="road construction public works department maharashtra state government infrastructure"
+  data-type="Open Tender"
+  data-authority="State Government"
+  data-category="Infrastructure"
+  data-state="Maharashtra">
+
+  <span class="badge">State Government • New</span>
+  <h3>Road Construction Work</h3>
+  <div class="org">Public Works Department, Maharashtra</div>
+
+  <div class="details">
+    <div class="detail">
+      <small>Estimated Value</small>
+      <b>₹12.45 Cr</b>
+    </div>
+    <div class="detail">
+      <small>Closing Date</small>
+      <b>18 Jun 2024</b>
+    </div>
+    <div class="detail">
+      <small>Location</small>
+      <b>Mumbai, Maharashtra</b>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn">View Details</button>
+    <button class="btn outline" onclick="saveTender(this)">♡ Save</button>
+  </div>
+</div>
+
+<div class="card"
+  data-search="electrical equipment bhel haridwar psu uttarakhand"
+  data-type="Limited Tender"
+  data-authority="PSU"
+  data-category="IT & Software"
+  data-state="Uttarakhand">
+
+  <span class="badge">PSU Tender</span>
+  <h3>Supply of Electrical Equipment</h3>
+  <div class="org">BHEL, Haridwar</div>
+
+  <div class="details">
+    <div class="detail">
+      <small>Estimated Value</small>
+      <b>₹8.75 Cr</b>
+    </div>
+    <div class="detail">
+      <small>Closing Date</small>
+      <b>15 Jun 2024</b>
+    </div>
+    <div class="detail">
+      <small>Location</small>
+      <b>Haridwar, Uttarakhand</b>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn">View Details</button>
+    <button class="btn outline" onclick="saveTender(this)">♡ Save</button>
+  </div>
+</div>
+
+<div id="noResults" class="no-results">
+  <h3>No matching tenders found</h3>
+  <p style="margin-top:8px">
+    Try changing your search or filter selection.
+  </p>
+</div>
+
+  </section>  <section id="features">
+    <h2 class="section-title">Why IET?</h2><div class="features">
+  <div class="feature">
+    <h3>🔎 Smart Search</h3>
+    <p>Find relevant government and non-government tenders quickly.</p>
+  </div>
+
+  <div class="feature">
+    <h3>🔔 Deadline Alerts</h3>
+    <p>Track important closing dates and never miss opportunities.</p>
+  </div>
+
+  <div class="feature">
+    <h3>🤖 AI Assistant</h3>
+    <p>Understand tender requirements and make better decisions.</p>
+  </div>
+
+  <div class="feature">
+    <h3>♡ Watchlist</h3>
+    <p>Save and track tenders that matter to your business.</p>
+  </div>
+</div>
+
+  </section></div><footer>
   <h3>IET – India Tender Platform</h3>
   <p>Find. Filter. Bid. Win.</p>
   <p style="margin-top:10px;font-size:13px;opacity:.7">
     © 2026 IET Tender Platform
   </p>
-</footer>
+</footer><script>
 
-<script>
-function searchTenders(){
-  const query=document.getElementById("searchInput").value.toLowerCase().trim();
-  const cards=document.querySelectorAll(".card");
+function applyFilters(){
 
-  cards.forEach(card=>{
-    const text=card.dataset.search.toLowerCase();
-    card.style.display=(!query || text.includes(query)) ? "block" : "none";
+  const query =
+    document.getElementById("searchInput")
+    .value.toLowerCase()
+    .trim();
+
+  const type =
+    document.getElementById("type").value;
+
+  const authority =
+    document.getElementById("authority").value;
+
+  const category =
+    document.getElementById("category").value;
+
+  const state =
+    document.getElementById("state").value;
+
+  const cards =
+    document.querySelectorAll(".card");
+
+  let visibleCount = 0;
+
+  cards.forEach(card => {
+
+    const searchText =
+      card.dataset.search.toLowerCase();
+
+    const cardType =
+      card.dataset.type;
+
+    const cardAuthority =
+      card.dataset.authority;
+
+    const cardCategory =
+      card.dataset.category;
+
+    const cardState =
+      card.dataset.state;
+
+    const matchesSearch =
+      !query || searchText.includes(query);
+
+    const matchesType =
+      !type || cardType === type;
+
+    const matchesAuthority =
+      !authority || cardAuthority === authority;
+
+    const matchesCategory =
+      !category || cardCategory === category;
+
+    const matchesState =
+      !state || cardState === state;
+
+    const show =
+      matchesSearch &&
+      matchesType &&
+      matchesAuthority &&
+      matchesCategory &&
+      matchesState;
+
+    card.style.display =
+      show ? "block" : "none";
+
+    if(show){
+      visibleCount++;
+    }
+
   });
+
+  document.getElementById("noResults").style.display =
+    visibleCount === 0 ? "block" : "none";
 
   document.getElementById("tenders").scrollIntoView({
     behavior:"smooth"
   });
 }
 
+
 function saveTender(button){
+
   if(button.innerText.includes("♡")){
     button.innerText="♥ Saved";
   }else{
     button.innerText="♡ Save";
   }
-}
-</script>
 
-</body>
-  </html>
+}
+
+
+document.getElementById("searchInput")
+.addEventListener("keypress", function(event){
+
+  if(event.key === "Enter"){
+    applyFilters();
+  }
+
+});
+
+</script></body>
+</html>
