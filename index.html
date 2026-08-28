@@ -129,6 +129,22 @@ button{
   color:#777;
 }
 
+.loading{
+  background:white;
+  padding:25px;
+  border-radius:10px;
+  text-align:center;
+  color:#555;
+}
+
+.error{
+  background:#fff3f3;
+  border:1px solid #f0b5b5;
+  padding:20px;
+  border-radius:10px;
+  color:#a00000;
+}
+
 .hidden{
   display:none;
 }
@@ -180,10 +196,6 @@ button{
   border-radius:7px;
 }
 
-.official-btn:hover{
-  background:#11663b;
-}
-
 @media(max-width:600px){
 
   header h1{
@@ -218,7 +230,7 @@ button{
 
 <div class="container">
 
-<!-- ================= SEARCH PAGE ================= -->
+<!-- SEARCH PAGE -->
 
 <div id="searchPage">
 
@@ -244,25 +256,15 @@ button{
 
         <option value="">All Categories</option>
 
-        <option value="Construction">
-          Construction
-        </option>
+        <option value="Construction">Construction</option>
 
-        <option value="Road">
-          Road
-        </option>
+        <option value="Road">Road</option>
 
-        <option value="Electrical">
-          Electrical
-        </option>
+        <option value="Electrical">Electrical</option>
 
-        <option value="IT">
-          IT
-        </option>
+        <option value="IT">IT</option>
 
-        <option value="Supply">
-          Supply
-        </option>
+        <option value="Supply">Supply</option>
 
       </select>
 
@@ -282,22 +284,28 @@ button{
 
   </div>
 
-
   <div class="results">
 
     <div
       id="resultCount"
       class="result-count">
+      Loading tenders...
     </div>
 
-    <div id="tenderResults"></div>
+    <div id="tenderResults">
+
+      <div class="loading">
+        Loading IET tender data...
+      </div>
+
+    </div>
 
   </div>
 
 </div>
 
 
-<!-- ================= DETAIL PAGE ================= -->
+<!-- DETAIL PAGE -->
 
 <div id="detailPage" class="hidden">
 
@@ -373,8 +381,9 @@ button{
       id="officialLink"
       class="official-btn"
       href="#"
-      target="_blank">
-      Official Tender
+      target="_blank"
+      rel="noopener">
+      Official Tender Source
     </a>
 
   </div>
@@ -386,115 +395,94 @@ button{
 
 <script>
 
-/* ================= TENDER DATA ================= */
+/* =========================================
+   IET DATA
+   ========================================= */
 
-const tenders = [
+let tenders = [];
 
-  {
-    id:"IET-MH-001",
-    title:"Road Construction and Development Work",
-    organization:"Public Works Department Maharashtra",
-    location:"Maharashtra",
-    category:"Road",
-    value:"₹12.50 Crore",
-    publishDate:"28 August 2026",
-    date:"30 September 2026",
-    tenderFee:"₹5,000",
-    emd:"₹25,00,000",
-    workPeriod:"12 Months",
-    status:"Open",
-    officialLink:"https://example.com"
-  },
+let currentResults = [];
 
-  {
-    id:"IET-MH-002",
-    title:"Construction of Government Building",
-    organization:"Government of Maharashtra",
-    location:"Mumbai, Maharashtra",
-    category:"Construction",
-    value:"₹8.20 Crore",
-    publishDate:"28 August 2026",
-    date:"12 October 2026",
-    tenderFee:"₹7,500",
-    emd:"₹16,40,000",
-    workPeriod:"18 Months",
-    status:"Open",
-    officialLink:"https://example.com"
-  },
 
-  {
-    id:"IET-BHEL-001",
-    title:"Supply of Industrial Electrical Equipment",
-    organization:"BHEL",
-    location:"Bhopal, Madhya Pradesh",
-    category:"Electrical",
-    value:"₹2.75 Crore",
-    publishDate:"27 August 2026",
-    date:"05 October 2026",
-    tenderFee:"₹3,000",
-    emd:"₹5,50,000",
-    workPeriod:"6 Months",
-    status:"Open",
-    officialLink:"https://example.com"
-  },
+/* =========================================
+   LOAD DATA FROM data.json
+   ========================================= */
 
-  {
-    id:"IET-BHEL-002",
-    title:"IT Hardware and Network Infrastructure",
-    organization:"BHEL",
-    location:"Bengaluru, Karnataka",
-    category:"IT",
-    value:"₹1.85 Crore",
-    publishDate:"26 August 2026",
-    date:"18 October 2026",
-    tenderFee:"₹2,500",
-    emd:"₹3,70,000",
-    workPeriod:"8 Months",
-    status:"Open",
-    officialLink:"https://example.com"
-  },
+async function loadTenderData(){
 
-  {
-    id:"IET-MP-001",
-    title:"Road Repair and Maintenance Work",
-    organization:"Madhya Pradesh Road Development Corporation",
-    location:"Bhopal, Madhya Pradesh",
-    category:"Road",
-    value:"₹6.40 Crore",
-    publishDate:"25 August 2026",
-    date:"22 October 2026",
-    tenderFee:"₹4,000",
-    emd:"₹12,80,000",
-    workPeriod:"10 Months",
-    status:"Open",
-    officialLink:"https://example.com"
-  },
+  const results =
+    document.getElementById("tenderResults");
 
-  {
-    id:"IET-UP-001",
-    title:"Supply of Construction Materials",
-    organization:"Government Procurement Department",
-    location:"Lucknow, Uttar Pradesh",
-    category:"Supply",
-    value:"₹3.10 Crore",
-    publishDate:"24 August 2026",
-    date:"28 October 2026",
-    tenderFee:"₹3,500",
-    emd:"₹6,20,000",
-    workPeriod:"5 Months",
-    status:"Open",
-    officialLink:"https://example.com"
+  const count =
+    document.getElementById("resultCount");
+
+  try{
+
+    const response =
+      await fetch("data.json?version=" + Date.now());
+
+    if(!response.ok){
+
+      throw new Error(
+        "data.json could not be loaded"
+      );
+
+    }
+
+    const data =
+      await response.json();
+
+
+    if(
+      !data.tenders ||
+      !Array.isArray(data.tenders)
+    ){
+
+      throw new Error(
+        "Invalid tender data format"
+      );
+
+    }
+
+
+    tenders = data.tenders;
+
+    currentResults = tenders;
+
+    displayTenders(tenders);
+
+
+  }catch(error){
+
+    console.error(error);
+
+    count.innerText =
+      "Tender data unavailable";
+
+    results.innerHTML = `
+
+      <div class="error">
+
+        <strong>Unable to load tender data.</strong>
+
+        <p style="margin-top:8px;">
+          Please check that <b>data.json</b>
+          exists in the same GitHub repository
+          as index.html.
+        </p>
+
+      </div>
+
+    `;
+
   }
 
-];
+}
 
 
-/* ================= CURRENT RESULTS ================= */
-
-let currentResults = tenders;
-
-
-/* ================= DISPLAY TENDERS ================= */
+/* =========================================
+   DISPLAY TENDERS
+   ========================================= */
 
 function displayTenders(list){
 
@@ -503,6 +491,7 @@ function displayTenders(list){
 
   const count =
     document.getElementById("resultCount");
+
 
   results.innerHTML = "";
 
@@ -513,13 +502,22 @@ function displayTenders(list){
   if(list.length === 0){
 
     results.innerHTML = `
+
       <div class="no-results">
+
         No tenders found.
-        Try another State, Company or Category.
+
+        <br><br>
+
+        Try another State, Company,
+        Tender ID or Category.
+
       </div>
+
     `;
 
     return;
+
   }
 
 
@@ -529,7 +527,9 @@ function displayTenders(list){
 
       <div class="tender-card">
 
-        <h3>${tender.title}</h3>
+        <h3>
+          ${tender.title}
+        </h3>
 
         <p>
           <strong>Organization:</strong>
@@ -553,7 +553,7 @@ function displayTenders(list){
 
         <p>
           <strong>Closing Date:</strong>
-          ${tender.date}
+          ${tender.closingDate}
         </p>
 
         <button
@@ -571,7 +571,9 @@ function displayTenders(list){
 }
 
 
-/* ================= SEARCH ================= */
+/* =========================================
+   SEARCH
+   ========================================= */
 
 function searchTenders(){
 
@@ -581,24 +583,27 @@ function searchTenders(){
     .toLowerCase()
     .trim();
 
+
   const tenderId =
     document.getElementById("tenderIdInput")
     .value
     .toLowerCase()
     .trim();
 
+
   const selectedCategory =
     document.getElementById("category").value;
 
 
   currentResults =
-    tenders.filter(tender => {
+    tenders.filter(tender=>{
 
       const searchableText = (
 
         tender.title + " " +
         tender.organization + " " +
         tender.location + " " +
+        tender.state + " " +
         tender.category
 
       ).toLowerCase();
@@ -611,7 +616,9 @@ function searchTenders(){
 
       const idMatch =
         tenderId === "" ||
-        tender.id.toLowerCase().includes(tenderId);
+        tender.id
+          .toLowerCase()
+          .includes(tenderId);
 
 
       const categoryMatch =
@@ -629,10 +636,13 @@ function searchTenders(){
 
 
   displayTenders(currentResults);
+
 }
 
 
-/* ================= CLEAR SEARCH ================= */
+/* =========================================
+   CLEAR SEARCH
+   ========================================= */
 
 function clearSearch(){
 
@@ -645,71 +655,112 @@ function clearSearch(){
   currentResults = tenders;
 
   displayTenders(tenders);
+
 }
 
 
-/* ================= OPEN DETAILS ================= */
+/* =========================================
+   OPEN TENDER DETAILS
+   ========================================= */
 
 function openTender(index){
 
-  const tender = currentResults[index];
+  const tender =
+    currentResults[index];
+
+
+  if(!tender){
+    return;
+  }
 
 
   document.getElementById("searchPage")
     .classList.add("hidden");
+
 
   document.getElementById("detailPage")
     .classList.remove("hidden");
 
 
   document.getElementById("detailTitle")
-    .innerText = tender.title;
+    .innerText =
+    tender.title || "-";
+
 
   document.getElementById("detailId")
-    .innerText = tender.id;
+    .innerText =
+    tender.id || "-";
+
 
   document.getElementById("detailOrg")
-    .innerText = tender.organization;
+    .innerText =
+    tender.organization || "-";
+
 
   document.getElementById("detailLocation")
-    .innerText = tender.location;
+    .innerText =
+    tender.location || "-";
+
 
   document.getElementById("detailCategory")
-    .innerText = tender.category;
+    .innerText =
+    tender.category || "-";
+
 
   document.getElementById("detailValue")
-    .innerText = tender.value;
+    .innerText =
+    tender.value || "-";
+
 
   document.getElementById("detailPublishDate")
-    .innerText = tender.publishDate;
+    .innerText =
+    tender.publishDate || "-";
+
 
   document.getElementById("detailDate")
-    .innerText = tender.date;
+    .innerText =
+    tender.closingDate || "-";
+
 
   document.getElementById("detailFee")
-    .innerText = tender.tenderFee;
+    .innerText =
+    tender.tenderFee || "-";
+
 
   document.getElementById("detailEmd")
-    .innerText = tender.emd;
+    .innerText =
+    tender.emd || "-";
+
 
   document.getElementById("detailWorkPeriod")
-    .innerText = tender.workPeriod;
+    .innerText =
+    tender.workPeriod || "-";
+
 
   document.getElementById("detailStatus")
-    .innerText = tender.status;
+    .innerText =
+    tender.status || "-";
 
-  document.getElementById("officialLink")
-    .href = tender.officialLink;
+
+  const officialLink =
+    document.getElementById("officialLink");
+
+
+  officialLink.href =
+    tender.officialLink || "#";
 
 }
 
 
-/* ================= BACK ================= */
+/* =========================================
+   BACK TO SEARCH
+   ========================================= */
 
 function showSearchPage(){
 
   document.getElementById("detailPage")
     .classList.add("hidden");
+
 
   document.getElementById("searchPage")
     .classList.remove("hidden");
@@ -717,11 +768,13 @@ function showSearchPage(){
 }
 
 
-/* ================= START ================= */
+/* =========================================
+   START IET
+   ========================================= */
 
-displayTenders(tenders);
+loadTenderData();
 
 </script>
 
 </body>
-  </html>
+        </html>
