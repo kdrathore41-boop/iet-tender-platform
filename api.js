@@ -9,23 +9,20 @@ const server = http.createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
 
-  
-const pathname = url.pathname;{
+  if (req.method === "OPTIONS") {
     res.writeHead(204);
     res.end();
     return;
   }
-if (req.method === "OPTIONS") {
-    res.writeHead(204);
-    res.end();
-    return;
-}
 
-const url = new URL(req.url, `http://${req.headers.host}`);
-const pathname = url.pathname;
-  if (pathname === "/api/health")
-if (pathname === "/api/tenders")
-    res.writeHead(200);
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const pathname = url.pathname;
+
+  if (pathname === "/api/health") {
+
+    res.writeHead(200, {
+      "Content-Type": "application/json"
+    });
 
     res.end(JSON.stringify({
       success: true,
@@ -37,14 +34,16 @@ if (pathname === "/api/tenders")
     return;
   }
 
-  if (pathname === "/api/tenders")
+  if (pathname === "/api/tenders") {
 
     try {
 
       const data = fs.readFileSync("./data.json", "utf8");
       const json = JSON.parse(data);
 
-      res.writeHead(200);
+      res.writeHead(200, {
+        "Content-Type": "application/json"
+      });
 
       res.end(JSON.stringify({
         success: true,
@@ -54,7 +53,9 @@ if (pathname === "/api/tenders")
 
     } catch (error) {
 
-      res.writeHead(500);
+      res.writeHead(500, {
+        "Content-Type": "application/json"
+      });
 
       res.end(JSON.stringify({
         success: false,
@@ -67,7 +68,9 @@ if (pathname === "/api/tenders")
     return;
   }
 
-  res.writeHead(404);
+  res.writeHead(404, {
+    "Content-Type": "application/json"
+  });
 
   res.end(JSON.stringify({
     success: false,
