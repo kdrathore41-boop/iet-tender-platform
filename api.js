@@ -9,15 +9,22 @@ const server = http.createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
 
-  if (req.method === "OPTIONS") const url = new URL(req.url, `http://${req.headers.host}`);
+  
 const pathname = url.pathname;{
     res.writeHead(204);
     res.end();
     return;
   }
+if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    res.end();
+    return;
+}
 
+const url = new URL(req.url, `http://${req.headers.host}`);
+const pathname = url.pathname;
   if (pathname === "/api/health")
-
+if (pathname === "/api/tenders")
     res.writeHead(200);
 
     res.end(JSON.stringify({
