@@ -1,5 +1,6 @@
 const http = require("http");
 const fs = require("fs");
+const { normalizeTenders } = require("./tender-source");
 
 const PORT = process.env.PORT || 3000;
 
@@ -41,14 +42,16 @@ const server = http.createServer((req, res) => {
       const data = fs.readFileSync("./data.json", "utf8");
       const json = JSON.parse(data);
 
+      const tenders = normalizeTenders(json.tenders);
+
       res.writeHead(200, {
         "Content-Type": "application/json"
       });
 
       res.end(JSON.stringify({
         success: true,
-        count: json.tenders.length,
-        tenders: json.tenders
+        count: tenders.length,
+        tenders: tenders
       }));
 
     } catch (error) {
