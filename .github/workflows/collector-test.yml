@@ -2,13 +2,12 @@ name: IET Collector Validation
 
 on:
   push:
-    paths:      - "test-cppp-integration.js"
+    paths:
       - "data.json"
       - "collector.js"
       - "cppp-adapter.js"
       - "test-cppp-adapter.js"
-            - name: Test CPPP integration
-        run: node test-cppp-integration.js
+      - "test-cppp-integration.js"
       - ".github/workflows/collector-test.yml"
   workflow_dispatch:
 
@@ -30,3 +29,6 @@ jobs:
 
       - name: Test CPPP adapter
         run: node test-cppp-adapter.js
+
+      - name: Test CPPP integration
+        run: node test-cppp-integration.js
