@@ -5,6 +5,9 @@ on:
     paths:
       - "data.json"
       - "collector.js"
+      - "cppp-adapter.js"
+      - "test-cppp-adapter.js"
+      - ".github/workflows/collector-test.yml"
   workflow_dispatch:
 
 jobs:
@@ -22,3 +25,6 @@ jobs:
 
       - name: Validate tender data
         run: node collector.js
+
+      - name: Test CPPP adapter
+        run: node test-cppp-adapter.js
