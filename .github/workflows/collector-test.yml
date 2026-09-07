@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Validate tender data
         run: node collector.js
@@ -35,17 +35,39 @@ jobs:
         run: node test-cppp-integration.js
 
       - name: Test CPPP live source
+        id: cppp
         run: |
-          node -e "
-          require('./tender-collector').fetchCPPP()
-          .then(r => {
-            console.log('CPPP LIVE TEST:', r.success);
-            console.log('Tenders found:', r.tenderCount);
-            if (!r.success) process.exit(1);
-          })
-          .catch(e => {
-            console.error('CPPP LIVE TEST FAILED');
-            console.error(e.message);
-            process.exit(1);
-          })
-          "
+          node - <<'NODE'
+          const { fetchCPPP } = require("./tender-collector");
+
+          fetchCPPP()
+            .then(result => {
+              console.log("CPPP LIVE TEST:", result.success);
+              console.log("Tenders found:", result.tenderCount);
+
+              const fs = require("fs");
+
+              fs.appendFileSync(
+                process.env.GITHUB_STEP_SUMMARY,
+                `## CPPP Live Source Test\n\n` +
+                `- **Connection:** SUCCESS\n` +
+                `- **Tenders found:** ${result.tenderCount}\n` +
+                `- **Fetched at:** ${result.fetchedAt}\n`
+              );
+            })
+            .catch(error => {
+              console.error("CPPP LIVE TEST FAILED");
+              console.error(error.message);
+
+              const fs = require("fs");
+
+              fs.appendFileSync(
+                process.env.GITHUB_STEP_SUMMARY,
+                `## CPPP Live Source Test\n\n` +
+                `- **Connection:** FAILED\n` +
+                `- **Error:** ${error.message}\n`
+              );
+
+              process.exit(1);
+            });
+          NODE
