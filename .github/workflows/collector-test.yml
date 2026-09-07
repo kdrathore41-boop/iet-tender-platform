@@ -6,6 +6,7 @@ on:
       - "data.json"
       - "collector.js"
       - "cppp-adapter.js"
+      - "tender-collector.js"
       - "test-cppp-adapter.js"
       - "test-cppp-integration.js"
       - ".github/workflows/collector-test.yml"
@@ -32,3 +33,6 @@ jobs:
 
       - name: Test CPPP integration
         run: node test-cppp-integration.js
+
+      - name: Test CPPP live source
+        run: node -e "require('./tender-collector').fetchCPPP().then(r => { console.log('CPPP LIVE TEST:', r.success); console.log('Tenders found:', r.tenderCount); if (!r.success) process.exit(1); }).catch(e => { console.error(e.message); process.exit(1); })"
