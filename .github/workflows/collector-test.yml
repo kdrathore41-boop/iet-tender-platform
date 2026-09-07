@@ -1,16 +1,18 @@
-name: IET Collector Validation
+name: IET CPPP Live Data Update
 
 on:
+  workflow_dispatch:
   push:
     paths:
-      - "data.json"
-      - "collector.js"
-      - "cppp-adapter.js"
       - "tender-collector.js"
+      - "cppp-adapter.js"
+      - "collector.js"
       - "test-cppp-adapter.js"
       - "test-cppp-integration.js"
       - ".github/workflows/collector-test.yml"
-  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   validate:
@@ -34,40 +36,82 @@ jobs:
       - name: Test CPPP integration
         run: node test-cppp-integration.js
 
-      - name: Test CPPP live source
-        id: cppp
+      - name: Fetch CPPP live tenders
         run: |
           node - <<'NODE'
+          const fs = require("fs");
           const { fetchCPPP } = require("./tender-collector");
 
-          fetchCPPP()
-            .then(result => {
-              console.log("CPPP LIVE TEST:", result.success);
-              console.log("Tenders found:", result.tenderCount);
+          async function main() {
+            const result = await fetchCPPP();
 
-              const fs = require("fs");
+            console.log("CPPP CONNECTION:", result.success);
+            console.log("LIVE TENDERS:", result.tenderCount);
 
-              fs.appendFileSync(
-                process.env.GITHUB_STEP_SUMMARY,
-                `## CPPP Live Source Test\n\n` +
-                `- **Connection:** SUCCESS\n` +
-                `- **Tenders found:** ${result.tenderCount}\n` +
-                `- **Fetched at:** ${result.fetchedAt}\n`
-              );
-            })
-            .catch(error => {
-              console.error("CPPP LIVE TEST FAILED");
-              console.error(error.message);
+            if (!result.success || result.tenderCount === 0) {
+              throw new Error("No live CPPP tenders received");
+            }
 
-              const fs = require("fs");
+            const liveTenders = result.tenders.map((tender, index) => ({
+              id: `CPPP-LIVE-${index + 1}`,
+              title: tender.title,
+              organization: "Central Public Procurement Portal",
+              location: "",
+              state: "",
+              category: "",
+              value: "",
+              publishDate: "",
+              closingDate: "",
+              tenderFee: "",
+              emd: "",
+              workPeriod: "",
+              status: "Open",
+              officialSource: "CPPP",
+              officialLink: tender.officialLink,
+              verificationStatus: "SOURCE_REVIEW_REQUIRED",
+              lastUpdated: result.fetchedAt
+            }));
 
-              fs.appendFileSync(
-                process.env.GITHUB_STEP_SUMMARY,
-                `## CPPP Live Source Test\n\n` +
-                `- **Connection:** FAILED\n` +
-                `- **Error:** ${error.message}\n`
-              );
+            const output = {
+              platform: "IET - India E-Tender Platform",
+              source: "CPPP",
+              sourceType: "live-public-listing",
+              generatedAt: result.fetchedAt,
+              totalTenders: liveTenders.length,
+              tenders: liveTenders
+            };
 
-              process.exit(1);
-            });
+            fs.writeFileSync(
+              "data.json",
+              JSON.stringify(output, null, 2),
+              "utf8"
+            );
+
+            fs.appendFileSync(
+              process.env.GITHUB_STEP_SUMMARY,
+              `## IET CPPP Live Data\n\n` +
+              `- **Connection:** SUCCESS\n` +
+              `- **Live tenders received:** ${liveTenders.length}\n` +
+              `- **Data file:** data.json\n`
+            );
+          }
+
+          main().catch(error => {
+            console.error(error.message);
+            process.exit(1);
+          });
           NODE
+
+      - name: Save live CPPP data to GitHub
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data.json
+
+          if git diff --cached --quiet; then
+            echo "No data changes to commit."
+          else
+            git commit -m "Update live CPPP tender data"
+            git push
+          fi
