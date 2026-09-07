@@ -1,8 +1,11 @@
-
 // IET Automatic Tender Collector
 // Source #1: Central Public Procurement Portal (CPPP)
+//
+// Safe public-source collector.
+// Does NOT bypass CAPTCHA or restricted access.
 
-const CPPP_URL = "https://www.eprocure.gov.in/eprocure/app";
+const CPPP_URL =
+  "https://www.eprocure.gov.in/eprocure/app";
 
 function cleanText(text) {
   return String(text || "")
@@ -13,8 +16,8 @@ function cleanText(text) {
 function extractLatestTenders(html) {
   const tenders = [];
 
-  // Read tender links from the public CPPP Latest Tenders section.
-  const linkRegex = /<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  const linkRegex =
+    /<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
 
   let match;
 
@@ -29,7 +32,6 @@ function extractLatestTenders(html) {
       continue;
     }
 
-    // Keep only likely tender links.
     if (
       href.includes("FrontEndViewTender") ||
       href.includes("viewTender") ||
@@ -48,7 +50,21 @@ function extractLatestTenders(html) {
 }
 
 async function fetchCPPP() {
-  const response = await fetch(CPPP_URL);
+  const response = await fetch(CPPP_URL, {
+    method: "GET",
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0 Mobile Safari/537.36",
+      "Accept":
+        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language":
+        "en-IN,en;q=0.9",
+      "Referer":
+        "https://www.eprocure.gov.in/"
+    }
+  });
+
+  const html = await response.text();
 
   if (!response.ok) {
     throw new Error(
@@ -56,14 +72,14 @@ async function fetchCPPP() {
     );
   }
 
-  const html = await response.text();
+  const tenders = extractLatestTenders(html);
 
   return {
     source: "CPPP",
     success: true,
     fetchedAt: new Date().toISOString(),
-    tenderCount: extractLatestTenders(html).length,
-    tenders: extractLatestTenders(html)
+    tenderCount: tenders.length,
+    tenders
   };
 }
 
