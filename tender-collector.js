@@ -9,6 +9,8 @@ const CPPP_URL =
 
 function cleanText(text) {
   return String(text || "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -16,37 +18,122 @@ function cleanText(text) {
 function extractLatestTenders(html) {
   const tenders = [];
 
+  /*
+   * CPPP homepage contains several different link sections.
+   * We only accept links that look like actual tender-detail links.
+   * Navigation, enrollment, password and nodal-officer links
+   * are intentionally ignored.
+   */
+
   const linkRegex =
     /<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
 
   let match;
 
   while ((match = linkRegex.exec(html)) !== null) {
+    const href = match[1] || "";
+
     const title = cleanText(
       match[2].replace(/<[^>]+>/g, " ")
     );
-
-    const href = match[1];
 
     if (!title) {
       continue;
     }
 
+    const lowerTitle = title.toLowerCase();
+    const lowerHref = href.toLowerCase();
+
+    // Ignore obvious website navigation links.
+    const ignoredWords = [
+      "online bidder enrollment",
+      "generate / forgot password",
+      "find my nodal officer",
+      "home",
+      "login",
+      "contact us",
+      "sitemap"
+    ];
+
     if (
-      href.includes("FrontEndViewTender") ||
-      href.includes("viewTender") ||
-      href.includes("DirectLink")
+      ignoredWords.some(word =>
+        lowerTitle.includes(word)
+      )
     ) {
-      tenders.push({
-        title,
-        officialLink: href.startsWith("http")
-          ? href
-          : new URL(href, CPPP_URL).href
-      });
+      continue;
     }
+
+    /*
+     * Ignore corrigendum / notice type entries.
+     * These are useful later as a separate data type,
+     * but they are not primary tenders for this collector.
+     */
+    const noticeWords = [
+      "corrigendum",
+      "prebid query",
+      "bid due date extension",
+      "date extended",
+      "counter sign not required",
+      "form-b"
+    ];
+
+    if (
+      noticeWords.some(word =>
+        lowerTitle.includes(word)
+      )
+    ) {
+      continue;
+    }
+
+    /*
+     * Accept only links that CPPP uses for tender/detail
+     * style navigation.
+     */
+    const looksLikeTender =
+      lowerHref.includes("frontendviewtender") ||
+      lowerHref.includes("viewtender") ||
+      lowerHref.includes("directlink");
+
+    if (!looksLikeTender) {
+      continue;
+    }
+
+    /*
+     * Additional protection against obvious right-menu links.
+     */
+    if (
+      lowerHref.includes("webhomeborder") ||
+      lowerTitle.startsWith("online bidder")
+    ) {
+      continue;
+    }
+
+    const officialLink = href.startsWith("http")
+      ? href
+      : new URL(href, CPPP_URL).href;
+
+    tenders.push({
+      title,
+      officialLink
+    });
   }
 
-  return tenders;
+  /*
+   * Remove duplicate links.
+   */
+  const unique = [];
+  const seen = new Set();
+
+  for (const tender of tenders) {
+    if (seen.has(tender.officialLink)) {
+      continue;
+    }
+
+    seen.add(tender.officialLink);
+    unique.push(tender);
+  }
+
+  return unique;
 }
 
 async function fetchCPPP() {
