@@ -1,10 +1,13 @@
 const http = require("http");
 const fs = require("fs");
+
 const { normalizeTenders } = require("./tender-source");
+const { fetchCPPP } = require("./tender-collector");
+const { normalizeCPPTenders } = require("./cppp-adapter");
 
 const PORT = process.env.PORT || 3000;
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
 
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -19,6 +22,7 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname;
 
+  // IET API Health
   if (pathname === "/api/health") {
 
     res.writeHead(200, {
@@ -35,6 +39,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Existing demo/data API
   if (pathname === "/api/tenders") {
 
     try {
@@ -51,6 +56,7 @@ const server = http.createServer((req, res) => {
       res.end(JSON.stringify({
         success: true,
         count: tenders.length,
+        sourceType: "demo",
         tenders: tenders
       }));
 
@@ -65,12 +71,58 @@ const server = http.createServer((req, res) => {
         error: "Unable to load tender data",
         details: error.message
       }));
-
     }
 
     return;
   }
 
+  // Live CPPP public-source test
+  if (pathname === "/api/cppp") {
+
+    try {
+
+      const result = await fetchCPPP();
+
+      const records = result.tenders.map((tender, index) => ({
+        id: `CPPP-LIVE-${index + 1}`,
+        title: tender.title,
+        officialLink: tender.officialLink,
+        officialSource: "CPPP"
+      }));
+
+      const tenders = normalizeCPPTenders(records);
+
+      res.writeHead(200, {
+        "Content-Type": "application/json"
+      });
+
+      res.end(JSON.stringify({
+        success: true,
+        source: "CPPP",
+        sourceType: "live-public-listing",
+        fetchedAt: result.fetchedAt,
+        count: tenders.length,
+        tenders: tenders
+      }));
+
+    } catch (error) {
+
+      res.writeHead(502, {
+        "Content-Type": "application/json"
+      });
+
+      res.end(JSON.stringify({
+        success: false,
+        source: "CPPP",
+        error: "Unable to fetch CPPP public listing",
+        details: error.message
+      }));
+    }
+
+    return;
+  }
+
+  // Unknown endpoint
   res.writeHead(404, {
     "Content-Type": "application/json"
   });
