@@ -78,4 +78,106 @@ const server = http.createServer(async (req, res) => {
   }
 
   // Live CPPP
-  if (pathname
+  if (pathname === "/api/cppp") {
+    try {
+      const result = await fetchCPPP();
+
+      const records = result.tenders.map((tender, index) => ({
+        id: `CPPP-LIVE-${index + 1}`,
+        title: tender.title,
+        officialLink: tender.officialLink,
+        officialSource: "CPPP"
+      }));
+
+      const tenders = normalizeCPPTenders(records);
+
+      res.writeHead(200, {
+        "Content-Type": "application/json"
+      });
+
+      res.end(JSON.stringify({
+        success: true,
+        source: "CPPP",
+        sourceType: "live-public-listing",
+        fetchedAt: result.fetchedAt,
+        count: tenders.length,
+        tenders
+      }));
+
+    } catch (error) {
+      res.writeHead(502, {
+        "Content-Type": "application/json"
+      });
+
+      res.end(JSON.stringify({
+        success: false,
+        source: "CPPP",
+        error: "Unable to fetch CPPP public listing",
+        details: error.message
+      }));
+    }
+
+    return;
+  }
+
+  // Clean live CPPP
+  if (pathname === "/api/cppp-clean") {
+    try {
+      const result = await fetchCPPP();
+
+      const records = result.tenders.map((tender, index) => ({
+        id: `CPPP-LIVE-${index + 1}`,
+        title: tender.title,
+        officialLink: tender.officialLink,
+        officialSource: "CPPP"
+      }));
+
+      const cleaned = cleanCPPTenders(records);
+      const tenders = normalizeCPPTenders(cleaned);
+
+      res.writeHead(200, {
+        "Content-Type": "application/json"
+      });
+
+      res.end(JSON.stringify({
+        success: true,
+        source: "CPPP",
+        sourceType: "live-clean",
+        originalCount: records.length,
+        cleanedCount: tenders.length,
+        fetchedAt: result.fetchedAt,
+        tenders
+      }));
+
+    } catch (error) {
+      res.writeHead(502, {
+        "Content-Type": "application/json"
+      });
+
+      res.end(JSON.stringify({
+        success: false,
+        source: "CPPP",
+        error: "Unable to create clean CPPP feed",
+        details: error.message
+      }));
+    }
+
+    return;
+  }
+
+  // Unknown endpoint
+  res.writeHead(404, {
+    "Content-Type": "application/json"
+  });
+
+  res.end(JSON.stringify({
+    success: false,
+    error: "API endpoint not found",
+    path: req.url
+  }));
+
+});
+
+server.listen(PORT, () => {
+  console.log(`IET API V2 running on port ${PORT}`);
+});
