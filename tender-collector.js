@@ -26,110 +26,87 @@ function cleanUrl(url) {
     .trim();
 }
 
-/*
- * Extract the Latest Tenders table from CPPP.
- *
- * Expected public fields:
- * Tender Title
- * Reference No
- * Closing Date
- * Bid Opening Date
- */
 function extractLatestTenders(html) {
   const tenders = [];
 
-  /*
-   * First find the Latest Tenders section.
-   * We intentionally stop before Latest Corrigendums.
-   */
-  const latestMatch = html.match(
-    /Latest\s+Tenders([\s\S]*?)(?=Latest\s+Corrigendums|$)/i
-  );
-
-  if (!latestMatch) {
-    return [];
-  }
-
-  const section = latestMatch[1];
-
-  /*
-   * Extract table rows.
-   */
+  // Find every table row on the public CPPP page.
   const rowRegex =
-    /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+    /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
 
   let rowMatch;
 
-  while ((rowMatch = rowRegex.exec(section)) !== null) {
-    const row = rowMatch[1];
+  while ((rowMatch = rowRegex.exec(html)) !== null) {
+    const rowHtml = rowMatch[1];
 
-    /*
-     * Extract cells.
-     */
     const cells = [];
 
     const cellRegex =
-      /<(?:td|th)[^>]*>([\s\S]*?)<\/(?:td|th)>/gi;
+      /<(?:td|th)\b[^>]*>([\s\S]*?)<\/(?:td|th)>/gi;
 
     let cellMatch;
 
-    while ((cellMatch = cellRegex.exec(row)) !== null) {
-      cells.push(
-        cleanText(cellMatch[1])
-      );
+    while ((cellMatch = cellRegex.exec(rowHtml)) !== null) {
+      cells.push(cleanText(cellMatch[1]));
     }
 
-    /*
-     * A valid Latest Tender row normally contains:
-     *
-     * Number
-     * Tender Title
-     * Reference No
-     * Closing Date
-     * Bid Opening Date
-     */
+    // Latest Tender rows have at least 5 cells.
     if (cells.length < 5) {
       continue;
     }
 
-    const number = cells[0];
+    const serialNo = cells[0];
     const title = cells[1];
     const referenceNo = cells[2];
     const closingDate = cells[3];
     const bidOpeningDate = cells[4];
 
-    /*
-     * Skip table header.
-     */
+    // Serial number must look like 1, 2, 3...
+    if (!/^\d+\.?$/.test(serialNo)) {
+      continue;
+    }
+
+    // Ignore headers / empty rows.
     if (
-      title.toLowerCase() === "tender title" ||
-      referenceNo.toLowerCase() === "reference no"
+      !title ||
+      !referenceNo ||
+      title.toLowerCase() === "tender title"
     ) {
       continue;
     }
 
-    if (!title || !referenceNo) {
+    /*
+     * Find a link anywhere inside this row.
+     */
+    const links = [];
+
+    const linkRegex =
+      /<a\b[^>]*href=["']([^"']+)["'][^>]*>/gi;
+
+    let linkMatch;
+
+    while ((linkMatch = linkRegex.exec(rowHtml)) !== null) {
+      links.push(cleanUrl(linkMatch[1]));
+    }
+
+    if (links.length === 0) {
       continue;
     }
 
     /*
-     * Find the tender-detail link inside this row.
+     * Prefer the first actual tender-detail style link.
      */
-    const linkMatch =
-      row.match(
-        /<a[^>]+href=["']([^"']+)["'][^>]*>[\s\S]*?<\/a>/i
+    let officialLink = links.find(link => {
+      const lower = link.toLowerCase();
+
+      return (
+        lower.includes("directlink") ||
+        lower.includes("viewtender") ||
+        lower.includes("frontendviewtender")
       );
-
-    if (!linkMatch) {
-      continue;
-    }
-
-    const officialLink = cleanUrl(
-      linkMatch[1]
-    );
+    });
 
     if (!officialLink) {
-      continue;
+      officialLink = links[0];
     }
 
     const absoluteLink =
@@ -141,7 +118,7 @@ function extractLatestTenders(html) {
           ).href;
 
     tenders.push({
-      serialNo: number,
+      serialNo,
       title,
       referenceNo,
       closingDate,
@@ -151,26 +128,35 @@ function extractLatestTenders(html) {
   }
 
   /*
-   * Remove duplicate tender links.
+   * Remove duplicate tender records.
    */
   const unique = [];
   const seen = new Set();
 
   for (const tender of tenders) {
-    if (seen.has(tender.officialLink)) {
+    const key =
+      tender.referenceNo ||
+      tender.officialLink;
+
+    if (seen.has(key)) {
       continue;
     }
 
-    seen.add(tender.officialLink);
+    seen.add(key);
     unique.push(tender);
   }
 
-  return unique;
+  /*
+   * Keep only the first 10 Latest Tender records.
+   * CPPP homepage currently displays 10 in this section.
+   */
+  return unique.slice(0, 10);
 }
 
 async function fetchCPPP() {
   const response = await fetch(CPPP_URL, {
     method: "GET",
+
     headers: {
       "User-Agent":
         "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0 Mobile Safari/537.36",
