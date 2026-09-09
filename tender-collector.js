@@ -11,115 +11,147 @@ function cleanText(text) {
   return String(text || "")
     .replace(/&nbsp;/gi, " ")
     .replace(/&amp;/gi, "&")
+    .replace(/&#39;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
+function cleanUrl(url) {
+  return String(url || "")
+    .replace(/&amp;/gi, "&")
+    .trim();
+}
+
+/*
+ * Extract the Latest Tenders table from CPPP.
+ *
+ * Expected public fields:
+ * Tender Title
+ * Reference No
+ * Closing Date
+ * Bid Opening Date
+ */
 function extractLatestTenders(html) {
   const tenders = [];
 
   /*
-   * CPPP homepage contains several different link sections.
-   * We only accept links that look like actual tender-detail links.
-   * Navigation, enrollment, password and nodal-officer links
-   * are intentionally ignored.
+   * First find the Latest Tenders section.
+   * We intentionally stop before Latest Corrigendums.
    */
+  const latestMatch = html.match(
+    /Latest\s+Tenders([\s\S]*?)(?=Latest\s+Corrigendums|$)/i
+  );
 
-  const linkRegex =
-    /<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  if (!latestMatch) {
+    return [];
+  }
 
-  let match;
+  const section = latestMatch[1];
 
-  while ((match = linkRegex.exec(html)) !== null) {
-    const href = match[1] || "";
+  /*
+   * Extract table rows.
+   */
+  const rowRegex =
+    /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
 
-    const title = cleanText(
-      match[2].replace(/<[^>]+>/g, " ")
+  let rowMatch;
+
+  while ((rowMatch = rowRegex.exec(section)) !== null) {
+    const row = rowMatch[1];
+
+    /*
+     * Extract cells.
+     */
+    const cells = [];
+
+    const cellRegex =
+      /<(?:td|th)[^>]*>([\s\S]*?)<\/(?:td|th)>/gi;
+
+    let cellMatch;
+
+    while ((cellMatch = cellRegex.exec(row)) !== null) {
+      cells.push(
+        cleanText(cellMatch[1])
+      );
+    }
+
+    /*
+     * A valid Latest Tender row normally contains:
+     *
+     * Number
+     * Tender Title
+     * Reference No
+     * Closing Date
+     * Bid Opening Date
+     */
+    if (cells.length < 5) {
+      continue;
+    }
+
+    const number = cells[0];
+    const title = cells[1];
+    const referenceNo = cells[2];
+    const closingDate = cells[3];
+    const bidOpeningDate = cells[4];
+
+    /*
+     * Skip table header.
+     */
+    if (
+      title.toLowerCase() === "tender title" ||
+      referenceNo.toLowerCase() === "reference no"
+    ) {
+      continue;
+    }
+
+    if (!title || !referenceNo) {
+      continue;
+    }
+
+    /*
+     * Find the tender-detail link inside this row.
+     */
+    const linkMatch =
+      row.match(
+        /<a[^>]+href=["']([^"']+)["'][^>]*>[\s\S]*?<\/a>/i
+      );
+
+    if (!linkMatch) {
+      continue;
+    }
+
+    const officialLink = cleanUrl(
+      linkMatch[1]
     );
 
-    if (!title) {
+    if (!officialLink) {
       continue;
     }
 
-    const lowerTitle = title.toLowerCase();
-    const lowerHref = href.toLowerCase();
-
-    // Ignore obvious website navigation links.
-    const ignoredWords = [
-      "online bidder enrollment",
-      "generate / forgot password",
-      "find my nodal officer",
-      "home",
-      "login",
-      "contact us",
-      "sitemap"
-    ];
-
-    if (
-      ignoredWords.some(word =>
-        lowerTitle.includes(word)
-      )
-    ) {
-      continue;
-    }
-
-    /*
-     * Ignore corrigendum / notice type entries.
-     * These are useful later as a separate data type,
-     * but they are not primary tenders for this collector.
-     */
-    const noticeWords = [
-      "corrigendum",
-      "prebid query",
-      "bid due date extension",
-      "date extended",
-      "counter sign not required",
-      "form-b"
-    ];
-
-    if (
-      noticeWords.some(word =>
-        lowerTitle.includes(word)
-      )
-    ) {
-      continue;
-    }
-
-    /*
-     * Accept only links that CPPP uses for tender/detail
-     * style navigation.
-     */
-    const looksLikeTender =
-      lowerHref.includes("frontendviewtender") ||
-      lowerHref.includes("viewtender") ||
-      lowerHref.includes("directlink");
-
-    if (!looksLikeTender) {
-      continue;
-    }
-
-    /*
-     * Additional protection against obvious right-menu links.
-     */
-    if (
-      lowerHref.includes("webhomeborder") ||
-      lowerTitle.startsWith("online bidder")
-    ) {
-      continue;
-    }
-
-    const officialLink = href.startsWith("http")
-      ? href
-      : new URL(href, CPPP_URL).href;
+    const absoluteLink =
+      officialLink.startsWith("http")
+        ? officialLink
+        : new URL(
+            officialLink,
+            CPPP_URL
+          ).href;
 
     tenders.push({
+      serialNo: number,
       title,
-      officialLink
+      referenceNo,
+      closingDate,
+      bidOpeningDate,
+      officialLink: absoluteLink
     });
   }
 
   /*
-   * Remove duplicate links.
+   * Remove duplicate tender links.
    */
   const unique = [];
   const seen = new Set();
@@ -142,10 +174,13 @@ async function fetchCPPP() {
     headers: {
       "User-Agent":
         "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0 Mobile Safari/537.36",
+
       "Accept":
         "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+
       "Accept-Language":
         "en-IN,en;q=0.9",
+
       "Referer":
         "https://www.eprocure.gov.in/"
     }
@@ -159,12 +194,14 @@ async function fetchCPPP() {
     );
   }
 
-  const tenders = extractLatestTenders(html);
+  const tenders =
+    extractLatestTenders(html);
 
   return {
     source: "CPPP",
     success: true,
-    fetchedAt: new Date().toISOString(),
+    fetchedAt:
+      new Date().toISOString(),
     tenderCount: tenders.length,
     tenders
   };
@@ -172,6 +209,8 @@ async function fetchCPPP() {
 
 module.exports = {
   CPPP_URL,
+  cleanText,
+  cleanUrl,
   extractLatestTenders,
   fetchCPPP
 };
